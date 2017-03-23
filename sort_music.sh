@@ -10,15 +10,17 @@ LOG_FILE="my_music.log"
 SORT_ARTIST=0
 SORT_GENRE=0
 SORT_FOLDER=0
+SORT_ORIG=0
 MERGE=0
+QUIET=0
       
 function log_ {
     NUM=`echo "${BASH_LINENO[*]}" | cut -f2 -d ' ' `
     DATE=`date "+%Y-%m-%d% %H:%M:%S"`
     LOG_TXT="$DATE : $NUM : $@"
-	
-	echo -e "$LOG_TXT"
-	
+	if [ "$QUIET" != "1" ] ; then
+	  echo -e "$LOG_TXT"
+	fi
 	if [ "$LOG_FILE" != "" ] ; then
 		echo -e "$LOG_TXT" >> $LOG_FILE
 	fi
@@ -75,21 +77,25 @@ fi
 } 
 
 function get_group_by_genre {
-if [ "$1" == "Metal" ]; then
+if [ "$SORT_ORIG" == "1" ]; then
+	echo "$1"
+else 
+  if [ "$1" == "Metal" ]; then
 		echo "Metal"
-elif [ "$1" == "Heavy Metal" ]; then
+  elif [ "$1" == "Heavy Metal" ]; then
     echo "Metal"
-elif [ "$1" == "Pop" ]; then
+  elif [ "$1" == "Pop" ]; then
     echo "Pop"
-else
+  else
     echo "Other"       
+  fi
 fi
 } 
 
 function show_help
 {
     echo "Usage: sort_music.sh [-i source directory] [-o target_directory] [-d] [-m] [-h] \
-         [-a|f|g] [-t] [-v]"
+         [-a|f|g] [-t] [-v] [-r] [-q]"
     echo "   -i   scan specified folder for music"
     echo "   -o   target directory where links will be created"
     echo "   -d   display debug messages"
@@ -100,9 +106,11 @@ function show_help
   	echo "   -g   sort by folder name" 
     echo "   -t   test run, don't create links, just display messages"
     echo "   -v   more logging messages"
+    echo "   -r   use original categories, do not modify or use high level category"
+    echo "   -q   quiet mode"
 }
 
-while getopts "hdvo:t?agfi:m" opt; do
+while getopts "hdvo:t?agfi:mr" opt; do
     case "$opt" in
       h|\?)
         show_help
@@ -116,6 +124,8 @@ while getopts "hdvo:t?agfi:m" opt; do
       m) MERGE=1 ;;
       f) SORT_FOLDER=1 ;;
       i) BASE_DIR=$OPTARG ;;
+      r) SORT_ORIG=1 ;;
+      q) QUIET=1;
     esac
 done
 
@@ -144,19 +154,20 @@ START=`date +%s`
 SS=`date`
 
 
-while read -r line; do
+while read -r dir; do
 	
-	while read -r ff; do
-    base=`basename "$line"` 
+	while read -r file; do
+    base=`basename "$dir"` 
     log_d "Basename : $base"
 		group=""
 		if [ "$SORT_ARTIST" == "1" ]; then
-		  group=`exiftool -artist "$ff" | cut -d : -f 2 | cut -c 2-50`
+		  group=`exiftool -artist "$file" | cut -d : -f 2 | cut -c 2-50`
 		  log_d "Artist : $group"  
 		elif [ "$SORT_FOLDER" == "1" ]; then
-		  group=`basename "$line"`  
+		  group=`basename "$dir"`  
 		else
-		  group=`exiftool -genre "$ff" | cut -d : -f 2 | cut -c 2-30`
+		  group=`exiftool -genre "$file" | cut -d : -f 2 | cut -c 2-30`
+		  group=$(get_group_by_genre "$group")
 		fi
 		
 		if [ "$group" == "" ]; then
@@ -180,13 +191,13 @@ while read -r line; do
     
     # TO DO - check if target is not a link 
     
-    log_i "Creating link to directory : $line"
+    log_i "Creating link to directory : $dir"
     
     # create link
-    ln -s "$line" "$DIR_GROUP" &> /dev/null  # redirect errors
+    ln -s "$dir" "$DIR_GROUP" &> /dev/null  # redirect errors
 	  
 	   	   
-	done < <(find "$line" -iname "*mp3" -maxdepth 1 -type f | head -n 1)
+	done < <(find "$dir" -iname "*mp3" -maxdepth 1 -type f | head -n 1)
 done < <(find "$BASE_DIR" -depth -type d)
 
 
