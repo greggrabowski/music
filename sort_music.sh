@@ -10,6 +10,7 @@ LOG_FILE="my_music.log"
 SORT_ARTIST=0
 SORT_GENRE=0
 SORT_FOLDER=0
+MERGE=0
       
 function log_ {
     NUM=`echo "${BASH_LINENO[*]}" | cut -f2 -d ' ' `
@@ -58,12 +59,16 @@ function get_group_by_head {
 L=`echo $1 | cut -c 1`
 L=`echo "$L" | tr /a-z/ /A-Z/`
 
-if [[ "$L" == [A-D] ]]; then
-		echo "A-D"
-elif [[ "$L" == [E-H] ]]; then
-    echo "E-H"
-elif [[ "$L" == [I-Z] ]]; then
-    echo "I-Z"
+if [[ "$L" == [A-F] ]]; then
+		echo "A-F"
+elif [[ "$L" == [G-L] ]]; then
+    echo "G-L"
+elif [[ "$L" == [M-R] ]]; then
+    echo "M-R"
+elif [[ "$L" == [S-Z] ]]; then
+    echo "S-Z"
+elif [[ "$L" == [0-9] ]]; then
+    echo "0-9"
 else
     echo "Unknown"       
 fi
@@ -81,8 +86,23 @@ else
 fi
 } 
 
+function show_help
+{
+    echo "Usage: sort_music.sh [-i source directory] [-o target_directory] [-d] [-m] [-h] \
+         [-a|f|g] [-t] [-v]"
+    echo "   -i   scan specified folder for music"
+    echo "   -o   target directory where links will be created"
+    echo "   -d   display debug messages"
+    echo "   -h   display help"
+    echo "   -m   merge groups into alphabetical buckets"
+  	echo "   -a   sort by artist"
+  	echo "   -f   sort by genre"
+  	echo "   -g   sort by folder name" 
+    echo "   -t   test run, don't create links, just display messages"
+    echo "   -v   more logging messages"
+}
 
-while getopts "hdvo:t?agfi:" opt; do
+while getopts "hdvo:t?agfi:m" opt; do
     case "$opt" in
       h|\?)
         show_help
@@ -93,6 +113,7 @@ while getopts "hdvo:t?agfi:" opt; do
       t) TEST_RUN=1 ;;
       a) SORT_ARTIST=1 ;;
       g) SORT_GENRE=1 ;;
+      m) MERGE=1 ;;
       f) SORT_FOLDER=1 ;;
       i) BASE_DIR=$OPTARG ;;
     esac
@@ -113,7 +134,9 @@ fi
 
 if [ ! -d "$DIR_OUT" ] ; then
 	log_i "Creating directory $DIR_OUT"
-	mkdir -p "$DIR_OUT"
+	if [ "$TEST_RUN" != 1 ]; then
+	  mkdir -p "$DIR_OUT"
+	fi
 fi
 
 
@@ -125,20 +148,24 @@ while read -r line; do
 	
 	while read -r ff; do
     base=`basename "$line"` 
-    echo "Basename : $base"
+    log_d "Basename : $base"
+		group=""
 		if [ "$SORT_ARTIST" == "1" ]; then
-		  artist=`exiftool "$ff" | grep Artist | cut -d : -f 2 | cut -c 2-50`  
-	  
-	    group=$(get_group_by_head "$artist")	  
-		  group="$group/$artist"
+		  group=`exiftool -artist "$ff" | cut -d : -f 2 | cut -c 2-50`
+		  log_d "Artist : $group"  
 		elif [ "$SORT_FOLDER" == "1" ]; then
-		  folder=`basename "$line"`  
-	  
-	    group=$(get_group_by_head "$folder")	  
-		  group="$group/$folder"
+		  group=`basename "$line"`  
 		else
-		  genre=`exiftool "$ff" | grep Genre | cut -d : -f 2 | cut -c 2-30`
-		  group=$(get_group_by_genre "$genre")
+		  group=`exiftool -genre "$ff" | cut -d : -f 2 | cut -c 2-30`
+		fi
+		
+		if [ "$group" == "" ]; then
+		  group="Unknown"
+		fi
+		
+		if [ "$MERGE" == "1" ]; then
+			PREFIX=$(get_group_by_head "$group")
+			group="$PREFIX/$group"
 		fi
 		
 	  #echo "Group : $group"
@@ -150,13 +177,16 @@ while read -r line; do
 	      mkdir -p "$DIR_GROUP"
 	    fi
     fi
+    
+    # TO DO - check if target is not a link 
+    
     log_i "Creating link to directory : $line"
     
     # create link
     ln -s "$line" "$DIR_GROUP" &> /dev/null  # redirect errors
 	  
 	   	   
-	done < <(find "$line" -iname "*mp3" -maxdepth 1 | head -n 1)
+	done < <(find "$line" -iname "*mp3" -maxdepth 1 -type f | head -n 1)
 done < <(find "$BASE_DIR" -depth -type d)
 
 
