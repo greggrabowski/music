@@ -3,7 +3,7 @@
 # TO DO check if all tools are installed
 
 BASE_DIR=`pwd`
-OUT_DIR="$BASE_DIR"
+DIR_OUT="$BASE_DIR"
 DIRO=0
 LOG_FILE="my_music.log"
 SORT_ARTIST=0
@@ -17,7 +17,7 @@ FILE=0
       
 function log_ {
     NUM=`echo "${BASH_LINENO[*]}" | cut -f2 -d ' ' `
-    DATE=`date "+%Y-%m-%d% %H:%M:%S"`
+    DATE=`date "+%Y-%m-%d %H:%M:%S"`
     LOG_TXT="$DATE : $NUM : $@"
 	if [ "$QUIET" != "1" ] ; then
 	  echo -e "$LOG_TXT"
@@ -151,15 +151,22 @@ while read -r dir; do
 	
 	
   log_d "$dir : SAME_ARTIST = $SAME_ARTIST, FILE_NUM=$FILE_NUM, ALL_TAG:$MOVE_IF_ALL_TAGS"
-  if [ "$FOLDER" == 1 ] && [ "$FILE_NUM" -gt 0 ] && [ "$SAME_ARTIST" -eq 1 ] && [ "$SAME_ALBUM" -eq 1 ]; then
+  if [ "$FOLDER" == 1 ] && [ "$FILE_NUM" -gt 0 ] && [ "$MOVE_IF_ALL_TAGS" -eq 1 ]; then
+  #[ "$SAME_ARTIST" -eq 1 ] && [ "$SAME_ALBUM" -eq 1 ]; then
 
-    if [ "$artist" != "" ] && [ "$album" != "" ]; then
-      if [ "$DIRO" == 1 ]; then
-         new_dir="$DIR_OUT/$artist - $album"
+    if [ "$album" != "" ]; then     
+      if [ "$artist" != "" ]; then
+        new_name="$artist - $album"
       else
-        new_dir="${dir%/*}/$artist - $album"
+        new_name="$album"
       fi
- 
+      
+      if [ "$DIRO" == 1 ]; then
+         new_dir="$DIR_OUT/$new_name"
+      else
+        new_dir="${dir%/*}/$new_name"
+      fi
+ 		
       # if exists increase version or overwrite
       if [ -d "$new_dir" ] ; then
         date=`date`
@@ -174,10 +181,10 @@ while read -r dir; do
 		    mv "$dir" "$new_dir"
 		   fi
 		else
-		  log_i "Missing artist or album tag in dir : $dir"
+		  log_i "Missing album tag in dir : $dir"
 		fi
 	fi
-done < <(find "$BASE_DIR" -depth -type d)
+done < <(find "$BASE_DIR" -mindepth -type d -s)
 
 
 END=`date +%s`
