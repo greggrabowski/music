@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # TO DO filtering folders (exclusion)
 # TO DO logging
 # TO DO test mode
@@ -16,7 +17,7 @@ QUIET=0
       
 function log_ {
     NUM=`echo "${BASH_LINENO[*]}" | cut -f2 -d ' ' `
-    DATE=`date "+%Y-%m-%d% %H:%M:%S"`
+    DATE=`date "+%Y-%m-%d %H:%M:%S"`
     LOG_TXT="$DATE : $NUM : $@"
 	if [ "$QUIET" != "1" ] ; then
 	  echo -e "$LOG_TXT"
@@ -102,8 +103,8 @@ function show_help
     echo "   -h   display help"
     echo "   -m   merge groups into alphabetical buckets"
   	echo "   -a   sort by artist"
-  	echo "   -f   sort by genre"
-  	echo "   -g   sort by folder name" 
+  	echo "   -g   sort by genre"
+  	echo "   -f   sort by folder name" 
     echo "   -t   test run, don't create links, just display messages"
     echo "   -v   more logging messages"
     echo "   -r   use original categories, do not modify or use high level category"
@@ -191,11 +192,11 @@ while read -r dir; do
     
     # TO DO - check if target is not a link 
     
-    log_i "Creating link to directory : $dir"
-    
-    # create link
-    ln -s "$dir" "$DIR_GROUP" &> /dev/null  # redirect errors
-	  
+    log_i "Creating link to directory : $dir to $DIR_GROUP"
+    if [ "$TEST_RUN" != 1 ]; then
+      # create link
+      ln -s "$dir" "$DIR_GROUP" &> /dev/null  # redirect errors
+	  fi
 	   	   
 	done < <(find "$dir" -iname "*mp3" -maxdepth 1 -type f | head -n 1)
 done < <(find "$BASE_DIR" -depth -type d)
