@@ -2,6 +2,8 @@
 
 # TO DO check if all tools are installed
 # TO DO count moved dir/changeg files
+# TO DO keep track number from file name if all track number tags are zeros or not present
+
 BASE_DIR=`pwd`
 DIR_OUT="$BASE_DIR"
 DIRO=0
@@ -108,7 +110,8 @@ while read -r dir; do
 	SAME_ALBUM=1
 	artist=""
 	album=""
-	
+	prev_artist=""
+	prev_album=""	
 	MOVE_IF_ALL_TAGS=1
 	while read -r file; do
 	
@@ -122,11 +125,15 @@ while read -r dir; do
 		artist=`exiftool -s3 -artist "$file"`
 		album=`exiftool -s3 -album "$file" `  
 		
-		if [[ -z "$title" ]] || [[ -z "$artist" ]] || [[ -z "$album" ]] || [[ -z "$num" ]]; then
-			MOVE_IF_ALL_TAGS=0
-		fi
 		ext=${file##*.}
-
+    
+    if [ -z "$artist" ]; then
+      SAME_ARTIST=0
+    fi
+    if [ -z "$album" ]; then
+      SAME_ALBUM=0
+    fi
+    
     if [ $FILE_NUM -gt 1 ]; then
       if [ "$prev_artist" != "$artist" ] ; then
         SAME_ARTIST=0
@@ -140,28 +147,39 @@ while read -r dir; do
     prev_artist="$artist"
         
 		if [ "$FILE" == 1 ]; then
-		  loc=`dirname "$file"`
-		  name=`printf "%02d - %s - %s - %s.%s\n" "$num" "$title" "$artist" "$album" "$ext"`
-		  loc="$loc/$name"
-		  log_i "Renaming $file -> $loc"
-		  if [ "$TEST_RUN" != 1 ]; then
-		    mv "$file" "$loc"
+		  if [ ! -z "$title" ]; then
+		    loc=`dirname "$file"`
+		    name=`printf "%02d - %s - %s - %s.%s\n" "$num" "$title" "$artist" "$album" "$ext"`
+		  
+		    name=`echo ${name//\//\ }`
+        name=`echo ${name//\:/\ }`
+      
+		    loc="$loc/$name"
+		    log_i "Renaming $file -> $loc"
+		    if [ "$TEST_RUN" != 1 ]; then
+		      mv "$file" "$loc"
+		    fi
+		  else
+		    log_i "File $file doesn't have title tag"
 		  fi
-     fi
+    fi
 	   	   
 	done < <(find "$dir" -iname "*mp3" -maxdepth 1 -type f)
 	
 	
-  log_d "$dir : SAME_ARTIST = $SAME_ARTIST, FILE_NUM=$FILE_NUM, ALL_TAG:$MOVE_IF_ALL_TAGS"
-  if [ "$FOLDER" == 1 ] && [ "$FILE_NUM" -gt 0 ] && [ "$MOVE_IF_ALL_TAGS" -eq 1 ]; then
-  #[ "$SAME_ARTIST" -eq 1 ] && [ "$SAME_ALBUM" -eq 1 ]; then
-
-    if [ "$album" != "" ]; then     
-      if [ "$artist" != "" ]; then
+  log_d "$dir : SAME_ARTIST = $SAME_ARTIST, FILE_NUM=$FILE_NUM"
+  if [ "$FOLDER" == 1 ] && [ "$FILE_NUM" -gt 0 ]; then
+    if [ "$SAME_ARTIST" -eq 1 ] || [ "$SAME_ALBUM" -eq 1 ]; then
+      if [ "$SAME_ARTIST" -eq 1 ] && [ "$SAME_ALBUM" -eq 1 ]; then     
         new_name="$artist - $album"
-      else
+      elif [ "$SAME_ARTIST" -eq 1 ]; then
+        new_name="$artist"
+      else [ "$SAME_ALBUM" -eq 1 ]
         new_name="$album"
       fi
+        
+      new_name=`echo ${new_name//\//\ }`
+      new_name=`echo ${new_name//\:/\ }`
       
       if [ "$DIRO" == 1 ]; then
          new_dir="$DIR_OUT/$new_name"
@@ -181,9 +199,9 @@ while read -r dir; do
 	    log_i "Renaming dir $dir -> $new_dir"
 	    if [ "$TEST_RUN" != 1 ]; then
 		    mv "$dir" "$new_dir"
-		   fi
+		  fi
 		else
-		  log_i "Missing album tag in dir : $dir"
+		  log_i "Missing or mixed album tags in dir : $dir"
 		fi
 	fi
 done < <(find "$BASE_DIR" -mindepth 1 -type d )
