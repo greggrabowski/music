@@ -180,6 +180,7 @@ while read -r dir; do
 		    PREFIX=$(get_group_by_head "$artist")
 		  elif [ "$SORT_FOLDER" == "1" ]; then
 			  PREFIX=$(get_group_by_head "$base")
+		  fi
 		fi
 		
 	  #echo "Group : $group"
