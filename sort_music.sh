@@ -177,8 +177,11 @@ while read -r dir; do
 		fi
 		
 		if [ "$MERGE" == "1" ]; then
-			PREFIX=$(get_group_by_head "$group")
-			group="$PREFIX/$group"
+			if [ "$SORT_ARTIST" == "1" ]; then
+		    PREFIX=$(get_group_by_head "$group")
+		  elif [ "$SORT_FOLDER" == "1" ]; then
+			  PREFIX=$(get_group_by_head "$base")
+			fi
 		fi
 		
 	  #echo "Group : $group"
