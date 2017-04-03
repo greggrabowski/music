@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TO DO check if all tools are installed
-
+# TO DO count moved dir/changeg files
 BASE_DIR=`pwd`
 DIR_OUT="$BASE_DIR"
 DIRO=0
@@ -140,10 +140,12 @@ while read -r dir; do
     prev_artist="$artist"
         
 		if [ "$FILE" == 1 ]; then
+		  loc=`dirname "$file"`
 		  name=`printf "%02d - %s - %s - %s.%s\n" "$num" "$title" "$artist" "$album" "$ext"`
-		  log_i "Renaming $file -> $name"
+		  loc="$loc/$name"
+		  log_i "Renaming $file -> $loc"
 		  if [ "$TEST_RUN" != 1 ]; then
-		    mv "$file" "$name"
+		    mv "$file" "$loc"
 		  fi
      fi
 	   	   
@@ -184,7 +186,7 @@ while read -r dir; do
 		  log_i "Missing album tag in dir : $dir"
 		fi
 	fi
-done < <(find "$BASE_DIR" -mindepth -type d -s)
+done < <(find "$BASE_DIR" -mindepth 1 -type d )
 
 
 END=`date +%s`
