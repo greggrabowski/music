@@ -162,7 +162,8 @@ while read -r dir; do
     log_d "Basename : $base"
 		group=""
 		if [ "$SORT_ARTIST" == "1" ]; then
-		  group=`exiftool -artist "$file" | cut -d : -f 2 | cut -c 2-50`
+		  artist=`exiftool -artist "$file" | cut -d : -f 2 | cut -c 2-50`
+		  group="$artist"
 		  log_d "Artist : $group"  
 		elif [ "$SORT_FOLDER" == "1" ]; then
 		  log_d "Sorting by folder name"
@@ -172,13 +173,10 @@ while read -r dir; do
 		  group=$(get_group_by_genre "$group")
 		fi
 		
-		if [ "$group" == "" ]; then
-		  group="Unknown"
-		fi
 		
 		if [ "$MERGE" == "1" ]; then
 			if [ "$SORT_ARTIST" == "1" ]; then
-		    PREFIX=$(get_group_by_head "$group")
+		    PREFIX=$(get_group_by_head "$artist")
 		  elif [ "$SORT_FOLDER" == "1" ]; then
 			  PREFIX=$(get_group_by_head "$base")
 			fi
@@ -196,7 +194,7 @@ while read -r dir; do
     
     # TO DO - check if target is not a link 
     
-    log_i "Creating link to directory : $DIR_GROUP to $dir"
+    log_i "Creating link in $DIR_GROUP to dir: $dir"
     if [ "$TEST_RUN" != 1 ]; then
       # create link
       ln -s "$dir" "$DIR_GROUP" &> /dev/null  # redirect errors
