@@ -119,7 +119,11 @@ while read -r dir; do
 	  FILE_NUM=$(($FILE_NUM+1))	
     base=`basename "$dir"` 
 
-		num=$((10#`exiftool -s3 -track "$file" | cut -f1 -d"/"`))
+		#num=$((10#`exiftool -s3 -track "$file" | cut -f1 -d"/"`))
+		num=`exiftool -s3 -track "$file"`
+    if [ -z "${num##*[!0-9]*}" ]; then
+      num="00"
+    fi
 
 		title=`exiftool -s3 -title "$file"`
 		artist=`exiftool -s3 -artist "$file"`
