@@ -165,7 +165,8 @@ while read -r dir; do
 		  group=`exiftool -artist "$file" | cut -d : -f 2 | cut -c 2-50`
 		  log_d "Artist : $group"  
 		elif [ "$SORT_FOLDER" == "1" ]; then
-		  group=`basename "$dir"`  
+		  log_d "Sorting by folder name"
+		  #group=`basename "$dir"`  
 		else
 		  group=`exiftool -genre "$file" | cut -d : -f 2 | cut -c 2-30`
 		  group=$(get_group_by_genre "$group")
@@ -192,7 +193,7 @@ while read -r dir; do
     
     # TO DO - check if target is not a link 
     
-    log_i "Creating link to directory : $dir to $DIR_GROUP"
+    log_i "Creating link to directory : $DIR_GROUP to $dir"
     if [ "$TEST_RUN" != 1 ]; then
       # create link
       ln -s "$dir" "$DIR_GROUP" &> /dev/null  # redirect errors
