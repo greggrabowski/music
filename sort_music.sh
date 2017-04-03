@@ -14,6 +14,7 @@ SORT_FOLDER=0
 SORT_ORIG=0
 MERGE=0
 QUIET=0
+PREFIX=""
       
 function log_ {
     NUM=`echo "${BASH_LINENO[*]}" | cut -f2 -d ' ' `
@@ -179,11 +180,10 @@ while read -r dir; do
 		    PREFIX=$(get_group_by_head "$artist")
 		  elif [ "$SORT_FOLDER" == "1" ]; then
 			  PREFIX=$(get_group_by_head "$base")
-			fi
 		fi
 		
 	  #echo "Group : $group"
-	  DIR_GROUP="$DIR_OUT/$group"
+	  DIR_GROUP="$DIR_OUT/$PREFIX/$group"
 	   	    
 	  if [ ! -d "$DIR_GROUP" ] ; then
 	    #log_i "Creating directory for group $group: $DIR_GROUP"
