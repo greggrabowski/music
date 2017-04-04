@@ -17,6 +17,8 @@ QUIET=0
 FOLDER=0
 FILE=0
 CONVERT=0
+START=`date +%s`
+LOG_FILE="my_music_$START.log"
       
 function log_ {
     NUM=`echo "${BASH_LINENO[*]}" | cut -f2 -d ' ' `
@@ -185,7 +187,7 @@ while read -r dir; do
 		  fi
     fi
 	   	   
-	done < <(find "$dir" \(-iname "*mp3" -or -iname "*flac" \) -maxdepth 1 -type f)
+	done < <(find "$dir" \( -iname "*.mp3" -or -iname "*.flac" \) -maxdepth 1 -type f)
   
   
   log_d "$dir : SAME_ARTIST = $SAME_ARTIST, FILE_NUM=$FILE_NUM"
