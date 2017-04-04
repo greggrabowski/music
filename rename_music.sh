@@ -16,6 +16,7 @@ MERGE=0
 QUIET=0
 FOLDER=0
 FILE=0
+CONVERT=0
       
 function log_ {
     NUM=`echo "${BASH_LINENO[*]}" | cut -f2 -d ' ' `
@@ -72,9 +73,10 @@ function show_help
     echo "   -f   rename folder to format %artist% - %album%"
     echo "   -s   rename file/song to format %number% - %title% - %artist% - %album%"
     echo "   -o   move renamed files/dirs to target_directory"
+    echo "   -c   convert mpc,flac files into mp3"
 }
 
-while getopts "hdvt?qi:fso:" opt; do
+while getopts "hdvt?qi:fso:c" opt; do
     case "$opt" in
       h|\?)
         show_help
@@ -147,6 +149,21 @@ while read -r dir; do
       fi
     fi
 
+    if [ "$CONVERT" == 1 ]; then
+      if [ "$ext" == "flac" ]; then
+        #Convert flac to mp3
+        OUTF="${a[@]/%flac/mp3}"
+        num=`exiftool -s3 -tracknumber "$file"`
+        flac -c -d "$file" | lame -V0 --add-id3v2 --pad-id3v2 --ignore-tag-errors \
+           --ta "$artist" --tt "$title" --tl "$album"  --tg "$genre" \
+          --tn "$tracknumber" - "$OUTF"
+        file="$OUTF"
+      fi
+    fi
+
+#alias flac2mp3='for f in *.flac; do flac -cd "$f" | lame -b 320 - "${f%.*}".mp3; done'
+
+    
     prev_album="$album"
     prev_artist="$artist"
         
@@ -168,9 +185,9 @@ while read -r dir; do
 		  fi
     fi
 	   	   
-	done < <(find "$dir" -iname "*mp3" -maxdepth 1 -type f)
-	
-	
+	done < <(find "$dir" \(-iname "*mp3" -or -iname "*flac" \) -maxdepth 1 -type f)
+  
+  
   log_d "$dir : SAME_ARTIST = $SAME_ARTIST, FILE_NUM=$FILE_NUM"
   if [ "$FOLDER" == 1 ] && [ "$FILE_NUM" -gt 0 ]; then
     if [ "$SAME_ARTIST" -eq 1 ] || [ "$SAME_ALBUM" -eq 1 ]; then
@@ -205,7 +222,7 @@ while read -r dir; do
 		    mv "$dir" "$new_dir"
 		  fi
 		else
-		  log_i "Missing or mixed album tags in dir : $dir"
+		  log_i "Missing or mixed album tags (same album: $SAME_ARTIST, same artist: $SAME_ALBUM) in dir : $dir"
 		fi
 	fi
 done < <(find "$BASE_DIR" -mindepth 1 -type d )
