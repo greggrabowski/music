@@ -125,8 +125,12 @@ while read -r dir; do
 
 		#num=$((10#`exiftool -s3 -track "$file" | cut -f1 -d"/"`))
 		num=`exiftool -s3 -track "$file"`
+		#[[ -n ${myvar//[0-9]} ]] || echo All Digits
     if [ -z "${num##*[!0-9]*}" ]; then
-      num="00"
+      num=`exiftool -s3 -tracknumber "$file"`
+      if [ -z "${num##*[!0-9]*}" ]; then
+        num="00"
+      fi
     fi
 
 		title=`exiftool -s3 -title "$file"`
