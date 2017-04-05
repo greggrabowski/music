@@ -13,6 +13,7 @@ SORT_GENRE=0
 SORT_FOLDER=0
 SORT_ORIG=0
 MERGE=0
+MERGE_BY_LETTER=0
 QUIET=0
 PREFIX=""
       
@@ -58,6 +59,17 @@ function log_d {
       log_ "DEBUG : $@"
     fi
 }  
+
+function get_group_by_letter {
+L=`echo $1 | cut -c 1`
+L=`echo "$L" | tr /a-z/ /A-Z/`
+
+if [[ "$L" != "" ]]; then
+		echo "$L"
+else
+    echo "Unknown"       
+fi
+} 
 
 function get_group_by_head {
 L=`echo $1 | cut -c 1`
@@ -106,13 +118,14 @@ function show_help
   	echo "   -a   sort by artist"
   	echo "   -g   sort by genre"
   	echo "   -f   sort by folder name" 
+  	echo "   -l   merge by letter" 
     echo "   -t   test run, don't create links, just display messages"
     echo "   -v   more logging messages"
     echo "   -r   use original categories, do not modify or use high level category"
     echo "   -q   quiet mode"
 }
 
-while getopts "hdvo:t?agfi:mr" opt; do
+while getopts "hdvo:t?agfi:mrl" opt; do
     case "$opt" in
       h|\?)
         show_help
@@ -124,6 +137,7 @@ while getopts "hdvo:t?agfi:mr" opt; do
       a) SORT_ARTIST=1 ;;
       g) SORT_GENRE=1 ;;
       m) MERGE=1 ;;
+      m) MERGE_BY_LETTER=1 ;;
       f) SORT_FOLDER=1 ;;
       i) BASE_DIR=$OPTARG ;;
       r) SORT_ORIG=1 ;;
@@ -181,6 +195,12 @@ while read -r dir; do
 		  elif [ "$SORT_FOLDER" == "1" ]; then
 			  PREFIX=$(get_group_by_head "$base")
 		  fi
+		elif [ "$MERGE_BY_LETTER" == "1" ]; then
+			if [ "$SORT_ARTIST" == "1" ]; then
+		    PREFIX=$(get_group_by_letter "$artist")
+		  elif [ "$SORT_FOLDER" == "1" ]; then
+			  PREFIX=$(get_group_by_letter "$base")
+		  fi		
 		fi
 		
 	  #echo "Group : $group"
