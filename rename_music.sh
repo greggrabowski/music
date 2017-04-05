@@ -76,9 +76,10 @@ function show_help
     echo "   -s   rename file/song to format %number% - %title% - %artist% - %album%"
     echo "   -o   move renamed files/dirs to target_directory"
     echo "   -c   convert mpc,flac files into mp3"
+    echo "   -l   write to log file"
 }
 
-while getopts "hdvt?qi:fso:c" opt; do
+while getopts "hdvt?qi:fso:cl" opt; do
     case "$opt" in
       h|\?)
         show_help
@@ -191,7 +192,8 @@ while read -r dir; do
 		  fi
     fi
 	   	   
-	done < <(find "$dir" \( -iname "*.mp3" -or -iname "*.flac" \) -maxdepth 1 -type f)
+	done < <(find "$dir" \( -iname "*.mp3" -or -iname "*.flac" -or -iname "*.ogg" -or \
+	       -iname "*.mpc" -or -iname "*.wma" -or -iname "*.wav" \) -maxdepth 1 -type f)
   
   
   log_d "$dir : SAME_ARTIST = $SAME_ARTIST, FILE_NUM=$FILE_NUM"
