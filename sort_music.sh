@@ -137,7 +137,7 @@ while getopts "hdvo:t?agfi:mrl" opt; do
       a) SORT_ARTIST=1 ;;
       g) SORT_GENRE=1 ;;
       m) MERGE=1 ;;
-      m) MERGE_BY_LETTER=1 ;;
+      l) MERGE_BY_LETTER=1 ;;
       f) SORT_FOLDER=1 ;;
       i) BASE_DIR=$OPTARG ;;
       r) SORT_ORIG=1 ;;
