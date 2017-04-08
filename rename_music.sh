@@ -136,8 +136,17 @@ while read -r dir; do
 
 		title=`exiftool -s3 -title "$file"`
 		artist=`exiftool -s3 -artist "$file"`
+		
+		if [ -z "$artist" ]; then
+      artist=`exiftool -s3 -albumartist "$file"`
+    fi
+    
 		album=`exiftool -s3 -album "$file" `  
 		
+		if [ -z "$album" ]; then
+      album=`exiftool -s3 -albumtitle "$file"`
+    fi
+    		
 		ext=${file##*.}
     
     if [ -z "$artist" ]; then
