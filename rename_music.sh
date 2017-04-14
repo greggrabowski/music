@@ -67,6 +67,32 @@ function log_d {
     fi
 }  
 
+function are_same() {
+  if [ "$MD5_CMD" != "" ]; then
+    MD5_1=`find "$1" -type f -exec "$MD5_CMD" '{}' \;   | awk -F '[ ]' '{print $1}'`
+    MD5_2=`find "$2" -type f -exec "$MD5_CMD" '{}' \;   | awk -F '[ ]' '{print $1}'`
+    if [ "$MD5_1" == "$MD5_2" ]; then
+      echo "1"
+    else
+      echo "0"
+    fi
+  else
+    echo "0"
+  fi
+}
+
+function exists {
+  T=0
+
+  while [ "$1" != "" ]; do
+    type "$1" &> /dev/null ;
+    T=$(($T+`echo "$?"`))  
+    #echo "Missing tool : $1"  FIX IT - report missing tool
+    shift
+  done
+  echo "$T"
+}
+
 function show_help
 {
     echo "Usage: rename_music.sh [-i source directory] [-d] [-h] [-t] [-v] [-q] [-f]"
@@ -117,6 +143,28 @@ if [ "$DIR0" != "1" ]; then
   MIN_DEPTH=0
 fi
 
+
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+	log_d "We are using Linux"
+	MD5_CMD="md5sum"
+	# check if all tools are installed 
+    if [ `exists exiftool md5sum` != 0 ]; then
+      log_d "Not all tools are installed"
+      exit
+    fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+	log_v "We are using MacOS"	
+	MD5_CMD="md5 -r"
+	# check if all tools are installed 
+    if [ `exists exiftool md5 ` != 0 ]; then
+      log_d "Not all tools are installed"
+      exit
+    fi
+else
+  exit
+fi
+    
+    
 
 
 START=`date +%s`
@@ -245,9 +293,13 @@ while read -r dir; do
       
         # if exists increase version or overwrite
         if [ -d "$new_dir" ] ; then
-          # change forlder name if exist
+          # change folder name if exists
           date=`date`
-	        new_dir="$new_dir ($date)"
+          # if [ $(are same "$1" "$2") ] ; then
+	          new_dir="$new_dir ($date)"
+	          # else
+	          #new_dir="$new_dir_DUP($date)"
+	          #fi
 	        if [ "$TEST_RUN" != 1 ]; then
 	          mkdir -p "$new_dir"
 	        fi
@@ -259,8 +311,6 @@ while read -r dir; do
       else
         log_i "Source and target folders are the same"
       fi     
-        
-      
 		else
 		  log_i "Missing or mixed album tags (same album: $SAME_ARTIST, same artist: $SAME_ALBUM) in dir : $dir"
 		fi
