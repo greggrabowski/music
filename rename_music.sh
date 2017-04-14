@@ -187,10 +187,10 @@ while read -r dir; do
     base=`basename "$dir"` 
 
 		#num=$((10#`exiftool -s3 -track "$file" | cut -f1 -d"/"`))
-		num=`exiftool -s3 -track "$file"`
+		num=`exiftool -s3 -track "$file" | cut -f1 -d"/"`
 		#[[ -n ${myvar//[0-9]} ]] || echo All Digits
     if [ -z "${num##*[!0-9]*}" ]; then
-      num=`exiftool -s3 -tracknumber "$file"`
+      num=`exiftool -s3 -tracknumber "$file" | cut -f1 -d"/"`
       if [ -z "${num##*[!0-9]*}" ]; then
         log_d "Can't find track number in the tags"
         num="00"
