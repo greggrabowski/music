@@ -20,7 +20,7 @@ FOLDER=0
 FILE=0
 CONVERT=0
 START=`date +%s`
-LOG_DATE=`+%y_%m_%d_%H_%M_%S`
+LOG_DATE=`date +%y_%m_%d_%H_%M_%S`
 LOG_FILE="my_music_$LOG_DATE.log"
 MIN_DEPTH=1
       
