@@ -240,22 +240,27 @@ while read -r dir; do
         new_dir="${dir%/*}/$new_name"
       fi
  		
-      # if exists increase version or overwrite
-      if [ -d "$new_dir" ] ; then
-       # if [ "$dir" != "$new_dir" ]; then
-          # do it only if 
+      
+      if [ "$dir" != "$new_dir" ]; then
+      
+        # if exists increase version or overwrite
+        if [ -d "$new_dir" ] ; then
+          # change forlder name if exist
           date=`date`
 	        new_dir="$new_dir ($date)"
 	        if [ "$TEST_RUN" != 1 ]; then
 	          mkdir -p "$new_dir"
 	        fi
-	      #fi
+	      fi
+	      log_i "Renaming dir $dir -> $new_dir"
+	      if [ "$TEST_RUN" != 1 ]; then
+		      mv "$dir" "$new_dir"
+		    fi
+      else
+        log_i "Source and target folders are the same"
       fi     
         
-	    log_i "Renaming dir $dir -> $new_dir"
-	    if [ "$TEST_RUN" != 1 ]; then
-		    mv "$dir" "$new_dir"
-		  fi
+      
 		else
 		  log_i "Missing or mixed album tags (same album: $SAME_ARTIST, same artist: $SAME_ALBUM) in dir : $dir"
 		fi
