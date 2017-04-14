@@ -2,7 +2,9 @@
 
 # TO DO check if all tools are installed
 # TO DO count moved dir/changeg files
-# TO DO keep track number from file name if all track number tags are zeros or not present
+
+# TO DO mindepth depending on the option
+# TO DO do not create duplicate if renaming in same root folder
 
 BASE_DIR=`pwd`
 DIR_OUT="$BASE_DIR"
@@ -20,6 +22,7 @@ CONVERT=0
 START=`date +%s`
 LOG_DATE=`+%y_%m_%d_%H_%M_%S`
 LOG_FILE="my_music_$LOG_DATE.log"
+MIN_DEPTH=1
       
 function log_ {
     NUM=`echo "${BASH_LINENO[*]}" | cut -f2 -d ' ' `
@@ -104,6 +107,16 @@ if [ ! -d "$DIR_OUT" ] ; then
 	  mkdir -p "$DIR_OUT"
 	fi
 fi
+
+# if we are renaming file only search for files starting from the root dir => MIN_DEPTH=0
+if [ "$FILE" == "1" ]; then 
+  MIN_DEPTH=0
+fi
+# if there is no explicit target defined
+if [ "$DIR0" != "1" ]; then 
+  MIN_DEPTH=0
+fi
+
 
 
 START=`date +%s`
@@ -247,7 +260,7 @@ while read -r dir; do
 		  log_i "Missing or mixed album tags (same album: $SAME_ARTIST, same artist: $SAME_ALBUM) in dir : $dir"
 		fi
 	fi
-done < <(find "$BASE_DIR" -mindepth 1 -type d )
+done < <(find "$BASE_DIR" -mindepth "$MIN_DEPTH" -type d )
 
 
 END=`date +%s`
