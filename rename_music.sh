@@ -18,7 +18,8 @@ FOLDER=0
 FILE=0
 CONVERT=0
 START=`date +%s`
-LOG_FILE="my_music_$START.log"
+LOG_DATE=`+%y_%m_%d_%H_%M_%S`
+LOG_FILE="my_music_$LOG_DATE.log"
       
 function log_ {
     NUM=`echo "${BASH_LINENO[*]}" | cut -f2 -d ' ' `
@@ -130,15 +131,16 @@ while read -r dir; do
     if [ -z "${num##*[!0-9]*}" ]; then
       num=`exiftool -s3 -tracknumber "$file"`
       if [ -z "${num##*[!0-9]*}" ]; then
+        log_d "Can't find track number in the tags"
         num="00"
       fi
     fi
 
 		title=`exiftool -s3 -title "$file"`
-		artist=`exiftool -s3 -artist "$file"`
+		artist=`exiftool -s3 -albumartist "$file"`
 		
 		if [ -z "$artist" ]; then
-      artist=`exiftool -s3 -albumartist "$file"`
+			artist=`exiftool -s3 -artist "$file"`
     fi
     
 		album=`exiftool -s3 -album "$file" `  
@@ -186,7 +188,7 @@ while read -r dir; do
 		if [ "$FILE" == 1 ]; then
 		  if [ ! -z "$title" ]; then
 		    loc=`dirname "$file"`
-		    name=`printf "%02d - %s - %s - %s.%s\n" "$num" "$title" "$artist" "$album" "$ext"`
+		    name=`printf "%02d - %s - %s - %s.%s\n" "${num#0}" "$title" "$artist" "$album" "$ext"`
 		  
 		    name=`echo ${name//\//\ }`
         name=`echo ${name//\:/\ }`
@@ -227,11 +229,14 @@ while read -r dir; do
  		
       # if exists increase version or overwrite
       if [ -d "$new_dir" ] ; then
-        date=`date`
-	      new_dir="$new_dir ($date)"
-	      if [ "$TEST_RUN" != 1 ]; then
-	        mkdir -p "$new_dir"
-	      fi
+       # if [ "$dir" != "$new_dir" ]; then
+          # do it only if 
+          date=`date`
+	        new_dir="$new_dir ($date)"
+	        if [ "$TEST_RUN" != 1 ]; then
+	          mkdir -p "$new_dir"
+	        fi
+	      #fi
       fi     
         
 	    log_i "Renaming dir $dir -> $new_dir"
